@@ -1,0 +1,28 @@
+version: "3"
+
+networks:
+  inception:
+    driver: bridge
+    name: inception
+  
+secrets:
+  env_secret:
+    file: .env
+
+services:
+  mariadb:
+    container_name: mariadb
+    image: mariadb
+    secrets:
+      - env_secret
+    build:
+      context: ./requirements/mariadb
+    environment:
+      MYSQL_USER: "${MYSQL_USER}"
+      MYSQL_DATABASE: "${MYSQL_DATABASE}"
+      MYSQL_PASSWORD: "${MYSQL_PASSWORD}"
+      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD}"
+    restart: always
+    networks:
+      - inception
+  
