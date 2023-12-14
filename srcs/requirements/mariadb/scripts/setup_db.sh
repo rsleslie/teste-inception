@@ -10,10 +10,8 @@ fi
 chown -R mysql:mysql /var/lib/mysql
 
 if [ ! -d "/var/lib/mysql/mysql" ]; then
-    echo "intalando o db"
     mysql_install_db --user=mysql --ldata=/var/lib/mysql
     
-    echo "executando o mariadb-safe"
     mariadbd-safe & sleep 4; sleep 2
 
     chown -R mysql:mysql /var/lib/mysql
@@ -35,5 +33,4 @@ else
     echo "Inception database is already created"
 fi
 
-echo "executando o mysqld"
 /usr/bin/mysqld --user=mysql --skip-networking=0
