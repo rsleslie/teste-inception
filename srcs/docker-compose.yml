@@ -1,10 +1,10 @@
 version: "3"
 
 networks:
-  inception:
+  inception-network:
     driver: bridge
-    name: inception
-  
+    name: inception-network
+
 secrets:
   env_secret:
     file: .env
@@ -18,11 +18,75 @@ services:
     build:
       context: ./requirements/mariadb
     environment:
-      MYSQL_USER: "${MYSQL_USER}"
-      MYSQL_DATABASE: "${MYSQL_DATABASE}"
-      MYSQL_PASSWORD: "${MYSQL_PASSWORD}"
-      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD}"
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+    volumes:
+      - mariadb_data:/var/lib/mysql
     restart: always
     networks:
-      - inception
-  
+      - inception-network
+
+  # nginx:
+  #   container_name: nginx
+  #   image: nginx
+  #   env_file:
+  #     - .env
+  #   build:
+  #     context: ./requirements/nginx
+  #   volumes:
+  #     - wordpress_data:/var/www/wordpress
+  #   depends_on:
+  #     - wordpress
+  #   ports:
+  #     - "443:443"
+  #   restart: always
+  #   networks:
+  #     - inception-network
+
+  wordpress:
+    container_name: wordpress
+    image: wordpress
+    secrets:
+      - env_secret
+    build:
+      context: ./requirements/wordpress
+    volumes:
+      - wordpress_data:/var/www/wordpress
+    depends_on:
+      - mariadb
+    restart: always
+    networks:
+      - inception-network
+    ports:
+      - "9000:9000"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      WORDPRESS_URL: ${WORDPRESS_URL}
+      WORDPRESS_TITLE: ${WORDPRESS_TITLE}
+      ADMIN_USER: ${ADMIN_USER}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      ADMIN_EMAIL: ${ADMIN_EMAIL}
+      USER_EMAIL: ${USER_EMAIL}
+    init: true
+
+      
+
+volumes:
+  mariadb_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /home/rleslie-/data/mariadb
+
+  wordpress_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /home/rleslie-/data/wordpress
